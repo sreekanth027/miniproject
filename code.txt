@@ -1,0 +1,234 @@
+
+#include<stdio.h>
+#include<string.h>
+struct product
+{
+	int pno;
+	char pname[10];
+	float cost;
+	int nop;
+}p;
+struct bill
+{
+	char name[10];
+	float booked;
+	float cost;
+}b;
+struct view
+{
+	char cname[10];
+	float total;
+}v;
+void administrator();
+void customer();
+void viewbill();
+void billing();
+int main()
+{
+	int ch;
+	do{
+	
+	printf("1.Administrator\n2.customer\n3.viewbills\n9.exit\n");
+	printf("enter your choice : ");
+	scanf("%d",&ch);
+	switch(ch)
+	{
+		case 1:
+			administrator();
+			break;
+		case 2:
+			customer();
+			break;
+		case 3:
+			viewbill();
+			break;
+		default:
+			printf("\nthank you");
+			break;
+	}
+}while(ch!=9);
+}
+void administrator()
+{
+	FILE *fp,*temp;
+	int ch,y,x,a,yes,id;
+	long c;
+	while(a!=0)
+	{
+		printf("1.add\n2.edit\n3.delete\n4.view products\n0.exit(0)\n");
+		printf("enter your choice : ");
+		scanf("%d",&ch);
+		switch(ch)
+		{
+			case 1:
+				fp=fopen("product.txt","a+");
+				while(y!=0)
+				{
+					printf("enter product id : ");
+					scanf("%d",&p.pno);
+					printf("enter product name : ");
+					scanf("%s",p.pname);
+					printf("enter cost : ");
+					scanf("%f",&p.cost);
+					printf("enter no. of products : ");
+					scanf("%d",&p.nop);
+					fwrite(&p,sizeof(p),1,fp);
+					printf("Do you want to add 1 more (1.yes 0.no) : ");
+					scanf("%d",&y);
+				}
+				fclose(fp);
+				break;
+			case 2:
+				fp=fopen("product.txt","r+");
+				//rewind(fp);
+				do{
+				printf("enter product no. that u want to edit : ");
+				scanf("%d",&x);
+				
+				while((fread(&p,sizeof(p),1,fp))>0)
+				{
+					if(x==p.pno)
+					{
+						printf("enter details of product ::::\n");
+						printf("enter product no. : ");
+						scanf("%d",&p.pno);
+						printf("enter product name : ");
+						scanf("%s",p.pname);
+						printf("enter product cost : ");
+						scanf("%f",&p.cost);
+						printf("enter no. of products : ");
+						scanf("%d",&p.nop);
+						c=ftell(fp)-sizeof(p);
+						fseek(fp,c,0);
+						fwrite(&p,sizeof(p),1,fp);
+		
+					}
+					break;
+				}
+				printf("\ndo you want to edit 1 more (1:yes 0:no) : ");
+				scanf("%d",&yes);
+			}while(yes!=0);
+			    break;
+			case 3:
+				
+				fp=fopen("product.txt","r");
+				temp=fopen("temp.txt","w+");
+				printf("enter product id u wish to delete : ");
+				scanf("%d",&id);
+				rewind(fp);
+				while((fread(&p,sizeof(p),1,fp)>0))
+				{
+					if(id!=p.pno)
+					{
+						fwrite(&p,sizeof(p),1,temp);
+					}
+				}
+				fclose(fp);
+				fclose(temp);
+				remove("product.txt");
+				rename("temp.txt","product.txt");
+				break;
+			case 4:
+				fp=fopen("product.txt","r");
+				rewind(fp);
+				while((fread(&p,sizeof(p),1,fp))!=NULL)
+				{
+					printf("\n-----------------------------");
+	             	printf("\nproduct id : %d ",p.pno);
+	            	printf("\nproduct name : %s ",p.pname);
+	            	printf("\nproduct cost : %f ",p.cost);
+	            	printf("\nno. of products available : %d ",p.nop);
+	            	printf("\n-----------------------------------");
+				}
+				fclose(fp);
+				break;
+				
+			default :
+				printf("thank u\n ");
+				break;
+		}
+		printf("\ndo you want to continue 1.yes 0.no :");
+		scanf("%d",&a);
+	}
+}
+void customer()
+{
+	int ch,item,x,i;
+	FILE *fp;
+	FILE *sp;
+	fp=fopen("product.txt","r");
+	sp=fopen("select.txt","a+");
+	while((fread(&p,sizeof(p),1,fp)>0))
+	{
+		printf("\n-----------------------------");
+		printf("\nproduct id : %d ",p.pno);
+		printf("\nproduct name : %s ",p.pname);
+		printf("\nproduct cost : %f ",p.cost);
+		printf("\nno. of products available : %d ",p.nop);
+		printf("\n-----------------------------------");
+		printf("\n Do you want to buy 1.yes 0.no : ");
+		scanf("%d",&ch);
+		if(ch==1)
+		{
+			printf("\n enter no. of items u want to buy : ");
+			scanf("%d",&item);
+			if(item>p.nop)
+			{
+				printf("\n these many items r not available ");
+				printf("\nAvailable no. of items are : %d ",p.nop);
+				do
+				{
+					printf("\nenter no. of items u want to buy : ");
+					scanf("%d",&item);
+				}while(item>p.nop);
+			}
+			b.booked=item;
+			for(i=0;p.pname[i]!=NULL;i++)
+			{
+				b.name[i]=p.pname[i];
+			}
+			b.cost=p.cost;
+			fwrite(&b,sizeof(b),1,sp);
+		}
+		printf("\ndo you want to continue shopping 1. yes 0.no : ");
+		scanf("%d",&x);
+		if(x==0)
+		 break;
+	}
+	fclose(fp);
+	fclose(sp);
+	billing();
+}
+void billing()
+{
+	FILE *sp,*xp;
+	xp=fopen("view.txt","w");
+	sp=fopen("select.txt","r");
+	float total=0.0,cost;
+	rewind(sp);
+	printf("\nEnter ur name : ");
+	scanf("%s",v.cname);
+	while((fread(&b,sizeof(b),1,sp))>0)
+	{
+		cost=0.0;
+		printf("ITEM NAME\tCOST\t\tNO.OF iTEMS\t\tTOTAL\n");
+		cost=b.cost*b.booked;
+		printf("%s\t\t%f\t%f\t\t%f\n",b.name,b.cost,b.booked,cost);
+		total=total+cost;
+		
+	}
+	v.total=total;
+	fwrite(&v,sizeof(v),1,xp);
+	fclose(xp);
+}
+void viewbill()
+{
+	FILE *xp;
+	xp=fopen("view.txt","r");
+	rewind(xp);
+	while((fread(&v,sizeof(v),1,xp))!=NULL)
+	{
+		printf("\nCUSTOMER NAME : %s ",v.cname);
+		printf("\nAmount : %f\n",v.total);
+	}
+}
